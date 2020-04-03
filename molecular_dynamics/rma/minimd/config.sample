@@ -1,0 +1,7 @@
+6
+3 1 2 2 positions.txt msd
+3 1 4 4 velocities.txt vacf
+1 1 2 2 xpositions.txt histoxx
+1 1 2 2 ypositions.txt histoyx
+1 4 8 9 xvelocities.txt fftxv
+1 4 8 9 yvelocities.txt fftyv
