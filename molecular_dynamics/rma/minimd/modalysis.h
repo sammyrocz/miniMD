@@ -9,6 +9,7 @@
 
 #include "mpi.h"
 #include "types.h"
+#include "communicator.h"
 #define PAD 3
 #define FILENAMELEN 64
 
@@ -27,16 +28,22 @@ private:
     int *atsteps;
     int *acurrstep;
     int *afreq;
+    int *istemporal;
     char *afname;
     char *aname;
-
-
     int myrank;
-    long long int nglobal;
+
+    // *** ---- communicators setup ---- *** //
+    Communicator transmitter;
+    MPI_Comm gcomm;
+    MPI_Comm ucomm;
+
+    // *** ----- data for communication ----- *** //
+
+    
+    long long int tatoms; // total atoms
     long long int nlocal;
     long long int atoms;
-    MPI_Comm gcomm;
-    
 
     double **array;
     double ***temporalarr; // temporal data
@@ -49,7 +56,7 @@ private:
     double *vacf;
     char *commtype;
     int grank; // group rank
-    MPI_Comm ucomm;
+    
     MPI_Offset mpifo;
     // test
     char **filenames;
@@ -63,7 +70,6 @@ public:
 
     void init(int argc, char **argv,char *);
     void coanalyze();
-    void configure(); // gets configuration from config file
     void allocate();  // allocates required memory for setup
     void process();
     void checktimestep();

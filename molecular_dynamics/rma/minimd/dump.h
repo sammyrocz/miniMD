@@ -6,6 +6,7 @@
 #include "atom.h"
 #include "comm.h"
 #include "groupcomm.h"
+#include "communicator.h"
 
 #define ANAMELEN 16
 #define FILENAMELEN 64
@@ -42,6 +43,7 @@ class Dump
 	int *atevery;
 	int *atsteps;
 	int *acurrstep;
+	int *istemporal;
 	char *afname;
 	char *aname;
 
@@ -50,6 +52,7 @@ class Dump
 	int *timer;
 	MPI_Win win;
 	char *commtype;
+	Communicator transmitter;
 
 public:
 	Dump();

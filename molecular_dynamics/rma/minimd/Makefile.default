@@ -8,8 +8,8 @@ FFTW_DIR= $(HOME)/software/fftw/build
 
 # MiniMD Files
 
-SRC = fft1d.cpp histo.cpp vacf.cpp msd.cpp coanalysis.cpp modalysis.cpp main.cpp client.cpp dump.cpp analysisdump.cpp ljs.cpp input.cpp integrate.cpp atom.cpp force_lj.cpp neighbor.cpp thermo.cpp comm.cpp timer.cpp output.cpp setup.cpp force_eam.cpp  
-INC = modalysis.h groupcomm.h universecomm.h util.h client.h dump.h ljs.h atom.h force.h neighbor.h thermo.h timer.h comm.h integrate.h threadData.h variant.h types.h force_eam.h force_lj.h openmp.h
+SRC = communicator.cpp fft1d.cpp histo.cpp vacf.cpp msd.cpp coanalysis.cpp modalysis.cpp main.cpp client.cpp dump.cpp analysisdump.cpp ljs.cpp input.cpp integrate.cpp atom.cpp force_lj.cpp neighbor.cpp thermo.cpp comm.cpp timer.cpp output.cpp setup.cpp force_eam.cpp  
+INC = communicator.h modalysis.h groupcomm.h universecomm.h util.h client.h dump.h ljs.h atom.h force.h neighbor.h thermo.h timer.h comm.h integrate.h threadData.h variant.h types.h force_eam.h force_lj.h openmp.h
 	
 # Definitions
 

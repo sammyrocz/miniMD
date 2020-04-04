@@ -19,7 +19,7 @@
 void Dump::initAnalysisDump(Comm &comm, char *analysiscfg)
 {
 
-	int i, retval;
+	int  i;
 
 	if (analysiscfg == NULL)
 	{
@@ -29,7 +29,6 @@ void Dump::initAnalysisDump(Comm &comm, char *analysiscfg)
 
 	configFile = new char[strlen(analysiscfg)];
 	strcpy(configFile, analysiscfg);
-
 	//read from config file
 	if (comm.me == 0)
 	{
@@ -48,19 +47,24 @@ void Dump::initAnalysisDump(Comm &comm, char *analysiscfg)
 		i = 0;
 		while (i < anum)
 		{
-			fscanf(fp, "%d %d %d %d %s %s", &adim[i], &atevery[i], &atsteps[i], &acurrstep[i], afname + i * FILENAMELEN, aname + i * ANAMELEN);
+			fscanf(fp, "%d %d %d %d %d %s %s", &adim[i], &atevery[i], &atsteps[i], &acurrstep[i],&istemporal[i],afname + i * FILENAMELEN, aname + i * ANAMELEN);
 			++i;
 		}
 
 		fclose(fp);
+
+		
+	
 	}
+
+	
 
 	MPI_Bcast(&anum, 1, MPI_INT, 0, comm.subcomm);
 
 	//allocate anum elements in all processes but 0 (reader)
 	if (afreq == NULL)
 		aalloc(anum);
-
+	
 	if (MPI_Bcast(adim, anum, MPI_INT, 0, comm.subcomm) != MPI_SUCCESS)
 		printf("\nAnalysis config adim bcast error %d %s\n", errno, strerror(errno));
 	if (MPI_Bcast(atevery, anum, MPI_INT, 0, comm.subcomm) != MPI_SUCCESS)
@@ -69,15 +73,21 @@ void Dump::initAnalysisDump(Comm &comm, char *analysiscfg)
 		printf("\nAnalysis config atsteps bcast error %d %s\n", errno, strerror(errno));
 	if (MPI_Bcast(acurrstep, anum, MPI_INT, 0, comm.subcomm) != MPI_SUCCESS)
 		printf("\nAnalysis config acurrstep bcast error %d %s\n", errno, strerror(errno));
+	if (MPI_Bcast(istemporal, anum, MPI_INT, 0, comm.subcomm) != MPI_SUCCESS)
+		printf("\nAnalysis config temporal bcast error %d %s\n", errno, strerror(errno));
 	if (MPI_Bcast(afname, anum * FILENAMELEN, MPI_CHAR, 0, comm.subcomm) != MPI_SUCCESS)
 		printf("\nAnalysis dump file name bcast error %d %s\n", errno, strerror(errno));
 	if (MPI_Bcast(aname, anum * ANAMELEN, MPI_CHAR, 0, comm.subcomm) != MPI_SUCCESS)
 		printf("\nAnalysis name bcast error %d %s\n", errno, strerror(errno));
-
+	
 	for (i = 0; i < anum; i++)
 	{
 		afreq[i] = num_steps / atsteps[i]; //todo: deal with integrality later
 	}
+
+		
+	
+	
 }
 
 void Dump::apack(Atom &atom, Comm &comm, int n, int aindex)
@@ -204,9 +214,9 @@ void Dump::adump(Atom &atom, Comm &comm, int n, int aindex)
 }
 
 void Dump::aunpack()
-{
-
-	delete array;
+{	
+	if(array == NULL)
+		delete array;
 }
 
 void Dump::updateConfig(Comm &comm)
@@ -226,7 +236,7 @@ void Dump::updateConfig(Comm &comm)
 		int i = 0;
 		while (i < anum)
 		{
-			fprintf(fp, "%d %d %d %d %s %s\n", adim[i], atevery[i], atsteps[i], acurrstep[i], afname + i * FILENAMELEN, aname + i * ANAMELEN);
+			fprintf(fp, "%d %d %d %d %d %s %s\n", adim[i], atevery[i], atsteps[i], acurrstep[i], istemporal[i] ,afname + i * FILENAMELEN, aname + i * ANAMELEN);
 			++i;
 		}
 		fclose(fp);
@@ -275,7 +285,7 @@ void Dump::writeAOutput(Atom &atom, Comm &comm, int n, int aindex)
 	aunpack();
 
 	acurrstep[aindex]++;
-	updateConfig(comm);
+	//updateConfig(comm);
 }
 
 void Dump::aalloc(int anum)
@@ -287,6 +297,7 @@ void Dump::aalloc(int anum)
 	afreq = new int[anum];
 	afname = new char[anum * FILENAMELEN];
 	aname = new char[anum * ANAMELEN];
+	istemporal = new int[anum];
 
 	afh = (MPI_File *)malloc(anum * sizeof(MPI_File));
 }

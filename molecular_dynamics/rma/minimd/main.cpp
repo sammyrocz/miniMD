@@ -6,9 +6,15 @@
 #include "groupcomm.h"
 #include "universecomm.h"
 #include "modalysis.h"
+#include "communicator.h"
 
 UniverseComm *UniverseComm::instance = 0;
 GroupComm *GroupComm::instance = 0;
+int Communicator::commtype = 0;
+int Communicator::nana = 0;
+int Communicator::nsim = 0;
+int Communicator::rcvrank = 0;
+
 int main(int argc, char **argv)
 {
 
@@ -18,8 +24,7 @@ int main(int argc, char **argv)
     int nprocs;
     int proctype;
     char *commtype = 0;
-    long long int tatoms; // # total atoms
-
+    
     MPI_Comm_rank(MPI_COMM_WORLD, &me);
     MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
 
@@ -41,17 +46,25 @@ int main(int argc, char **argv)
     }
 
     int nsim = -1;
-    int nanal = -1;
+    int nana = -1;
 
     MPI_Comm intercomm; // intracommunicator
     MPI_Comm intracomm; //
+
+    Communicator::commtype = 1;
+    
     if (pratio != 0)
     {
 
         // Dividing the communicator
 
-        calstar(pratio, nsim, nanal);
-        if (nprocs % (nsim + nanal) != 0)
+        calstar(pratio, nsim, nana);
+        
+        Communicator::nana = nana;
+        Communicator::nsim = nsim;    
+        Communicator::rcvrank = nsim;
+
+        if (nprocs % (nsim + nana) != 0)
         {
 
             if (me == 0)
@@ -61,11 +74,11 @@ int main(int argc, char **argv)
         }
 
         //plain processes till here
-        joinuniverse(me, nsim, nanal, MPI_COMM_WORLD, intercomm);
+        joinuniverse(me, nsim, nana, MPI_COMM_WORLD, intercomm);
         GroupComm::setup(intercomm);
         GroupComm::getinstance()->isAvailable = true;
-        GroupComm::getinstance()->init(nsim, nanal, (nsim + nanal));
-        splituniverse(me, nsim, nanal, proctype, MPI_COMM_WORLD, intracomm);
+        GroupComm::getinstance()->init(nsim, nana, (nsim + nana));
+        splituniverse(me, nsim, nana, proctype, MPI_COMM_WORLD, intracomm);
         UniverseComm::setup(intracomm);
     }
 
@@ -83,6 +96,7 @@ int main(int argc, char **argv)
 
             Modalysis mod;
             mod.init(argc,argv, commtype);
+            mod.coanalyze();
 
             #endif
         }
