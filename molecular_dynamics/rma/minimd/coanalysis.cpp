@@ -4,27 +4,7 @@
 #include "groupcomm.h"
 #include <string.h>
 
-void Modalysis::allocate()
-{
 
-    adim = new int[anum];
-    atevery = new int[anum];
-    atsteps = new int[anum];
-    acurrstep = new int[anum];
-
-    int simpc = GroupComm::getinstance()->simpc;
-    array = new double *[anum];
-
-    for (int i = 0; i < anum; i++)
-    {
-        array[i] = 0;
-    }
-
-    xoriginal = 0;
-    voriginal = 0;
-    msd = new double[4];
-    vacf = new double[4];
-}
 
 void Modalysis::cleanup()
 {

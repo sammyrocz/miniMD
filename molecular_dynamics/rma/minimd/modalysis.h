@@ -16,16 +16,27 @@ class Modalysis
 {
 
 private:
+
+
+    // *** ----- configure setup ------ *** // 
+    char *config;
+    int anum; // analysis count
+    int num_steps;
+    int *adim; // dimesnion of the analysis
+    int *atevery; 
+    int *atsteps;
+    int *acurrstep;
+    int *afreq;
+    char *afname;
+    char *aname;
+
+
     int myrank;
     long long int nglobal;
     long long int nlocal;
     long long int atoms;
     MPI_Comm gcomm;
-    int anum;
-    int *adim;
-    int *atevery;
-    int *atsteps;
-    int *acurrstep;
+    
 
     double **array;
     double ***temporalarr; // temporal data
@@ -33,7 +44,7 @@ private:
     // holds the data and performs computation
     double *xoriginal;
     double *voriginal;
-
+    
     double *msd;
     double *vacf;
     char *commtype;
@@ -41,13 +52,16 @@ private:
     MPI_Comm ucomm;
     MPI_Offset mpifo;
     // test
-    char *afname;
     char **filenames;
     MPI_File *afh;
     int *timer;
     MPI_Win win;
 public:
-    void init(long long int, char *);
+
+    Modalysis();
+    ~Modalysis();
+
+    void init(int argc, char **argv,char *);
     void coanalyze();
     void configure(); // gets configuration from config file
     void allocate();  // allocates required memory for setup

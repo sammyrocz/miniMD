@@ -19,28 +19,13 @@
 void Dump::initAnalysisDump(Comm &comm, char *analysiscfg)
 {
 
-	// modified
-
-#ifdef MODALYSIS
-	gcomm = GroupComm::getinstance()->comm;
-	tosend = GroupComm::getinstance()->gsize;
-	MPI_Comm_rank(gcomm, &grank);
-
-#endif
-
-	// endif
-
 	int i, retval;
-	anum = 0;
 
 	if (analysiscfg == NULL)
 	{
 		printf("Config file NULL error %d\n", comm.me);
 		exit(1);
 	}
-
-	if (num_steps == 0)
-		perror("initAnalysisDump: error in initializing");
 
 	configFile = new char[strlen(analysiscfg)];
 	strcpy(configFile, analysiscfg);
@@ -92,29 +77,7 @@ void Dump::initAnalysisDump(Comm &comm, char *analysiscfg)
 	for (i = 0; i < anum; i++)
 	{
 		afreq[i] = num_steps / atsteps[i]; //todo: deal with integrality later
-
-		retval = MPI_File_open(comm.subcomm, afname + i * FILENAMELEN, MPI_MODE_RDWR | MPI_MODE_CREATE, MPI_INFO_NULL, &afh[i]);
-		//#ifdef DEBUG
-		if (comm.me < 2)
-			printf("%d %d check %d %s %s\n", comm.me, i, afreq[i], afname + i * FILENAMELEN, aname + i * ANAMELEN);
-		//#endif
 	}
-
-	if (retval != MPI_SUCCESS)
-		printf("\nAnalysis dump file open error %d %s\n", errno, strerror(errno));
-
-#ifdef MODALYSIS
-	MPI_Bcast(&anum, 1, MPI_INT, 0, gcomm);
-
-	MPI_Bcast(adim, anum, MPI_INT, 0, gcomm);
-
-	MPI_Bcast(atevery, anum, MPI_INT, 0, gcomm);
-
-	MPI_Bcast(acurrstep, anum, MPI_INT, 0, gcomm);
-
-	MPI_Bcast(atsteps, anum, MPI_INT, 0, gcomm);
-
-#endif
 }
 
 void Dump::apack(Atom &atom, Comm &comm, int n, int aindex)
@@ -148,66 +111,66 @@ void Dump::apack(Atom &atom, Comm &comm, int n, int aindex)
 			array[i] = atom.v[i * PAD + 1];
 	}
 
-#ifdef MODALYSIS
+	// #ifdef MODALYSIS
 
-	if (strcmp(commtype, "SEND") == 0)
-	{
+	// 	if (strcmp(commtype, "SEND") == 0)
+	// 	{
 
-		if (aindex == 4 || aindex == 5)
-		{
-			if (acurrstep[aindex] < atsteps[aindex])
-			{
-				MPI_Ssend(&atom.nlocal, 1, MPI_LONG_LONG_INT, tosend - 1, 0, gcomm);
-				MPI_Ssend(array, arraylen, MPI_DOUBLE, tosend - 1, 0, gcomm);
-			}
-		}
-		else if ((acurrstep[aindex] % atevery[aindex] == 0) && ((acurrstep[aindex] / atevery[aindex]) < (atsteps[aindex] / atevery[aindex])))
-		{
-			MPI_Ssend(&atom.nlocal, 1, MPI_LONG_LONG_INT, tosend - 1, 0, gcomm);
-			MPI_Ssend(array, arraylen, MPI_DOUBLE, tosend - 1, 0, gcomm);
-		}
-	}
-	else
-	{
-		//long long int  disp;
-		if (aindex == 4 || aindex == 5)
-		{
-			if (acurrstep[aindex] < atsteps[aindex])
-			{
-				long long int disp = 0;
+	// 		if (aindex == 4 || aindex == 5)
+	// 		{
+	// 			if (acurrstep[aindex] < atsteps[aindex])
+	// 			{
+	// 				MPI_Ssend(&atom.nlocal, 1, MPI_LONG_LONG_INT, tosend - 1, 0, gcomm);
+	// 				MPI_Ssend(array, arraylen, MPI_DOUBLE, tosend - 1, 0, gcomm);
+	// 			}
+	// 		}
+	// 		else if ((acurrstep[aindex] % atevery[aindex] == 0) && ((acurrstep[aindex] / atevery[aindex]) < (atsteps[aindex] / atevery[aindex])))
+	// 		{
+	// 			MPI_Ssend(&atom.nlocal, 1, MPI_LONG_LONG_INT, tosend - 1, 0, gcomm);
+	// 			MPI_Ssend(array, arraylen, MPI_DOUBLE, tosend - 1, 0, gcomm);
+	// 		}
+	// 	}
+	// 	else
+	// 	{
+	// 		//long long int  disp;
+	// 		if (aindex == 4 || aindex == 5)
+	// 		{
+	// 			if (acurrstep[aindex] < atsteps[aindex])
+	// 			{
+	// 				long long int disp = 0;
 
-				MPI_Scan(&nlocal, &disp, 1, MPI_LONG_LONG_INT, MPI_SUM, gcomm);
-				MPI_Win_create(MPI_BOTTOM, 0, sizeof(double), MPI_INFO_NULL, gcomm, &win);
-				disp = disp - nlocal;
-				MPI_Win_fence(0, win);
+	// 				MPI_Scan(&nlocal, &disp, 1, MPI_LONG_LONG_INT, MPI_SUM, gcomm);
+	// 				MPI_Win_create(MPI_BOTTOM, 0, sizeof(double), MPI_INFO_NULL, gcomm, &win);
+	// 				disp = disp - nlocal;
+	// 				MPI_Win_fence(0, win);
 
-				MPI_Put(array, arraylen, MPI_DOUBLE, tosend - 1, disp * adim[aindex], arraylen, MPI_DOUBLE, win);
+	// 				MPI_Put(array, arraylen, MPI_DOUBLE, tosend - 1, disp * adim[aindex], arraylen, MPI_DOUBLE, win);
 
-				MPI_Win_fence(0, win);
+	// 				MPI_Win_fence(0, win);
 
-				MPI_Win_free(&win);
-			}
-		}
-		else if ((acurrstep[aindex] % atevery[aindex] == 0) && ((acurrstep[aindex] / atevery[aindex]) < (atsteps[aindex] / atevery[aindex])))
-		{
-			long long int disp = 0;
-			MPI_Scan(&nlocal, &disp, 1, MPI_LONG_LONG_INT, MPI_SUM, gcomm);
-			MPI_Win_create(MPI_BOTTOM, 0, sizeof(double), MPI_INFO_NULL, gcomm, &win);
-			disp = disp - nlocal;
+	// 				MPI_Win_free(&win);
+	// 			}
+	// 		}
+	// 		else if ((acurrstep[aindex] % atevery[aindex] == 0) && ((acurrstep[aindex] / atevery[aindex]) < (atsteps[aindex] / atevery[aindex])))
+	// 		{
+	// 			long long int disp = 0;
+	// 			MPI_Scan(&nlocal, &disp, 1, MPI_LONG_LONG_INT, MPI_SUM, gcomm);
+	// 			MPI_Win_create(MPI_BOTTOM, 0, sizeof(double), MPI_INFO_NULL, gcomm, &win);
+	// 			disp = disp - nlocal;
 
-			MPI_Win_fence(0, win);
+	// 			MPI_Win_fence(0, win);
 
-			MPI_Put(array, arraylen, MPI_DOUBLE, tosend - 1, disp * adim[aindex], arraylen, MPI_DOUBLE, win);
+	// 			MPI_Put(array, arraylen, MPI_DOUBLE, tosend - 1, disp * adim[aindex], arraylen, MPI_DOUBLE, win);
 
-			MPI_Win_fence(0, win);
+	// 			MPI_Win_fence(0, win);
 
-			MPI_Win_free(&win);
-		}
-	}
+	// 			MPI_Win_free(&win);
+	// 		}
+	// 	}
 
-	MPI_Barrier(comm.subcomm);
+	// 	MPI_Barrier(comm.subcomm);
 
-#endif
+    // #endif
 }
 
 void Dump::adump(Atom &atom, Comm &comm, int n, int aindex)
@@ -275,35 +238,35 @@ void Dump::writeAOutput(Atom &atom, Comm &comm, int n, int aindex)
 
 	// modified
 
-#ifdef MODALYSIS
+	// #ifdef MODALYSIS
 
-	long long int latom = atom.nlocal;
-	long long int tatom = 0;
+	// 	long long int latom = atom.nlocal;
+	// 	long long int tatom = 0;
 
-	if (aindex == 4 || aindex == 5)
-	{
-		if (acurrstep[aindex] < atsteps[aindex])
-		{
-			if (grank == 0)
-			{
+	// 	if (aindex == 4 || aindex == 5)
+	// 	{
+	// 		if (acurrstep[aindex] < atsteps[aindex])
+	// 		{
+	// 			if (grank == 0)
+	// 			{
 
-				MPI_Ssend(&aindex, 1, MPI_INT, tosend - 1, 0, gcomm);
-			}
+	// 				MPI_Ssend(&aindex, 1, MPI_INT, tosend - 1, 0, gcomm);
+	// 			}
 
-			MPI_Allreduce(&latom, &tatom, 1, MPI_LONG_LONG_INT, MPI_SUM, gcomm);
-		}
-	}
-	else if ((acurrstep[aindex] % atevery[aindex] == 0) && ((acurrstep[aindex] / atevery[aindex]) < (atsteps[aindex] / atevery[aindex])))
-	{
+	// 			MPI_Allreduce(&latom, &tatom, 1, MPI_LONG_LONG_INT, MPI_SUM, gcomm);
+	// 		}
+	// 	}
+	// 	else if ((acurrstep[aindex] % atevery[aindex] == 0) && ((acurrstep[aindex] / atevery[aindex]) < (atsteps[aindex] / atevery[aindex])))
+	// 	{
 
-		if (grank == 0)
-		{
-			MPI_Ssend(&aindex, 1, MPI_INT, tosend - 1, 0, gcomm);
-		}
+	// 		if (grank == 0)
+	// 		{
+	// 			MPI_Ssend(&aindex, 1, MPI_INT, tosend - 1, 0, gcomm);
+	// 		}
 
-		MPI_Allreduce(&latom, &tatom, 1, MPI_LONG_LONG_INT, MPI_SUM, gcomm);
-	}
-#endif
+	// 		MPI_Allreduce(&latom, &tatom, 1, MPI_LONG_LONG_INT, MPI_SUM, gcomm);
+	// 	}
+	// #endif
 
 	// ended
 
@@ -332,10 +295,7 @@ void Dump::finiAnalysisDump()
 {
 
 	//close files. cleanup.
-	for (int i = 0; i < anum; i++)
-	{
-		MPI_File_close(&afh[i]);
-	}
+	
 
 	delete adim;
 	delete atevery;

@@ -505,20 +505,6 @@ int miniMDinit(int argc, char** argv,char *commtype)
 	//if (me == 0) 
 	//	initConnection();
   
-  //modified
-  // sending total number of atoms for initilization
-  #ifdef MODALYSIS
-  
-    MPI_Comm gcomm = GroupComm::getinstance()->comm;
-    
-    int grank;
-    MPI_Comm_rank(gcomm,&grank);
-    long long int tatoms; // total atoms
-    tatoms = atom.natoms;
-    MPI_Bcast(&tatoms,1,MPI_LONG_LONG_INT,0,gcomm);
-  
-  #endif
-
 	dump.initDump(comm, integrate.ntimes, dump_frequency, dumpdir, analysiscfg,commtype);	
 
 	if (dumpdir != NULL) delete dumpdir;

@@ -17,9 +17,9 @@ int main(int argc, char **argv)
     int me;
     int nprocs;
     int proctype;
-    char* commtype = 0;
+    char *commtype = 0;
     long long int tatoms; // # total atoms
-       
+
     MPI_Comm_rank(MPI_COMM_WORLD, &me);
     MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
 
@@ -37,15 +37,6 @@ int main(int argc, char **argv)
             else
                 printf("Error:Ratio not specified!\n");
             continue;
-        }
-        else if (strcmp(argv[i], "-atom") == 0)
-        {
-            char *temp = new char[256];
-            stpcpy(temp, argv[++i]);
-            tatoms = atoll(temp);
-        } else if(strcmp(argv[i],"-comm") == 0){
-            commtype = new char[256];
-            stpcpy(commtype,argv[++i]);
         }
     }
 
@@ -84,22 +75,21 @@ int main(int argc, char **argv)
         if (proctype == SIMULATION)
         {
 
-            miniMDinit(argc, argv,commtype);
+            miniMDinit(argc, argv, commtype);
         }
         else
         {
-#ifdef MODALYSIS
+            #ifdef MODALYSIS
 
             Modalysis mod;
-            mod.init(tatoms,commtype);
-            mod.coanalyze();
+            mod.init(argc,argv, commtype);
 
-#endif
+            #endif
         }
     }
     else
     {
-        miniMDinit(argc, argv,commtype);
+        miniMDinit(argc, argv, commtype);
     }
 
     MPI_Barrier(MPI_COMM_WORLD);
