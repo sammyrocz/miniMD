@@ -2,6 +2,8 @@
 #define COMMUNICATOR_H
 
 #include "mpi.h"
+#include "stdio.h"
+#include "stdlib.h"
 class Communicator
 {
 
@@ -9,10 +11,8 @@ class Communicator
         Communicator setups the communicaton in the group
     ------------------------------*/
 private:
-    int *acount; // atoms count
-    int *arr;
-    MPI_Comm ucomm;
-    MPI_Comm gcomm;
+    long long int *acount; // atoms count
+    void sendrecv(void *temp, long long int atoms,int dimension, int ts, int rank);
 
     
 
@@ -21,10 +21,12 @@ public:
     static int nsim;     // number of simulation process
     static int nana;     // number of analysis process
     static int rcvrank;  // reciver rank
-    
+    MPI_Comm ucomm;
+    MPI_Comm gcomm;
+
     Communicator();
     ~Communicator();
-    void communicate(int*, int); 
+    void communicate(void* temp, long long int atoms,int dimension, int ts,int rank); 
 
 };
 

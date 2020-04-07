@@ -72,9 +72,7 @@ public:
 	void aalloc(int);
 
 	void apack(Atom &, Comm &, int, int);
-	void adump(Atom &, Comm &, int, int);
 	void aunpack();
-	void updateConfig(Comm &);
 	void writeAOutput(Atom &, Comm &, int, int);
 
 	MMD_float *pos, *vel, *rtest;

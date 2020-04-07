@@ -51,7 +51,7 @@ int main(int argc, char **argv)
     MPI_Comm intercomm; // intracommunicator
     MPI_Comm intracomm; //
 
-    Communicator::commtype = 1;
+    Communicator::commtype = 0; // comm type is send
     
     if (pratio != 0)
     {

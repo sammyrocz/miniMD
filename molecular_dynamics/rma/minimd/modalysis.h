@@ -37,15 +37,17 @@ private:
     Communicator transmitter;
     MPI_Comm gcomm;
     MPI_Comm ucomm;
-
-    // *** ----- data for communication ----- *** //
+    double ***array; // reciver array for temporal and non-temporal data
 
     
+    // *** ----- data for communication ----- *** //
+
     long long int tatoms; // total atoms
     long long int nlocal;
-    long long int atoms;
+    
+    
+    // long long int atoms;
 
-    double **array;
     double ***temporalarr; // temporal data
     int **temporalsize;
     // holds the data and performs computation
@@ -73,7 +75,7 @@ public:
     void allocate();  // allocates required memory for setup
     void process();
     void checktimestep();
-    void readdata();
+    void readdata(int index,int timestep);
 
     void compute_vacf(double *arr);
     void compute_msd(double *);

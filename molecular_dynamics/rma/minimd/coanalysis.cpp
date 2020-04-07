@@ -1,11 +1,4 @@
 #include "modalysis.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include "groupcomm.h"
-#include <string.h>
-
-
-
 
 // void Modalysis::readdata()
 // {
@@ -44,7 +37,7 @@
 
 //         MPI_Win_fence(0,win);
 
-//         MPI_Win_fence(0,win);   
+//         MPI_Win_fence(0,win);
 
 //         MPI_Win_free(&win);
 //     }
@@ -111,49 +104,38 @@
 //     MPI_Barrier(ucomm);
 // }
 
+void Modalysis::readdata(int aindex, int n)
+{   
+    
+    
+    if (acurrstep[aindex] >= atsteps[aindex]) return;
+    
+    if((acurrstep[aindex] % atevery[aindex]) == 0 && istemporal[aindex] == 0){
+        
+        transmitter.communicate(array[aindex],nlocal,adim[aindex],acurrstep[aindex],grank);
+    } else if(istemporal[aindex]){
+        transmitter.communicate(array[aindex],nlocal,adim[aindex],acurrstep[aindex],grank);
+    }
+
+    acurrstep[aindex]++;
+}
+
 void Modalysis::process()
 {
 
-    for(int i = 0 ; i < num_steps;i++){
-        for(int j=0; j< anum; j++)
-		  if(i % afreq[j] == 0){
-              // read data for aindex i
-          }
-	   		       
+    for (int i = 0; i <= num_steps; i++)
+    {
+        for (int j = 0; j < anum; j++)
+            if (i % afreq[j] == 0)
+            {
+                readdata(j, i);
+                nlocal = 0;
+            }
     }
-
-    // bool alldone = false;
-
-    // while (alldone == false)
-    // {
-
-    //     bool flag = true;
-    //     for (int i = 0; i < anum; i++)
-    //     {
-
-    //         if (acurrstep[i] < atsteps[i])
-    //         {
-    //             flag = false;
-    //             break;
-    //         }
-    //     }
-
-    //     if (flag == false)
-    //     {
-    //         readdata();
-    //     }
-    //     else
-    //     {
-
-    //         alldone = true;
-    //     }
-    // }
 }
-
-
 
 void Modalysis::coanalyze()
 {
+
     process();
-    
 }
