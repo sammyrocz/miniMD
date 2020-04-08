@@ -29,7 +29,7 @@ int main(int argc, char **argv)
     MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
 
     char *pratio = NULL; // simulation to analysis processes ratio
-
+    
     for (int i = 0; i < argc; i++)
     {
 
@@ -42,6 +42,15 @@ int main(int argc, char **argv)
             else
                 printf("Error:Ratio not specified!\n");
             continue;
+        } else if(strcmp(argv[i],"-comm") == 0){
+                char *temp = new char[256];
+                strcpy(temp,argv[++i]);
+
+                if(strcmp(temp,"SEND") == 0){
+                    Communicator::commtype = 0;  // communication type is SEND/RECV
+                } else {
+                    Communicator::commtype = 1; // communcation type is RMA
+                }
         }
     }
 
@@ -51,7 +60,6 @@ int main(int argc, char **argv)
     MPI_Comm intercomm; // intracommunicator
     MPI_Comm intracomm; //
 
-    Communicator::commtype = 0; // comm type is send
     
     if (pratio != 0)
     {

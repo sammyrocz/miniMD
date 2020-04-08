@@ -20,14 +20,12 @@ void Dump::initAnalysisDump(Comm &comm, char *analysiscfg)
 {
 
 	gcomm = GroupComm::getinstance()->comm;
-	
+
 	transmitter.gcomm = GroupComm::getinstance()->comm;
 	transmitter.ucomm = UniverseComm::getinstance()->comm;
 	MPI_Comm_rank(gcomm, &grank);
-	
-	
+
 	int i;
-	
 
 	if (analysiscfg == NULL)
 	{
@@ -119,72 +117,9 @@ void Dump::apack(Atom &atom, Comm &comm, int n, int aindex)
 		else if (aindex == 5)
 			array[i] = atom.v[i * PAD + 1];
 	}
-	
-	transmitter.communicate(array,nlocal,adim[aindex],acurrstep[aindex],grank);
 
-	// #ifdef MODALYSIS
-
-	// 	if (strcmp(commtype, "SEND") == 0)
-	// 	{
-
-	// 		if (aindex == 4 || aindex == 5)
-	// 		{
-	// 			if (acurrstep[aindex] < atsteps[aindex])
-	// 			{
-	// 				MPI_Ssend(&atom.nlocal, 1, MPI_LONG_LONG_INT, tosend - 1, 0, gcomm);
-	// 				MPI_Ssend(array, arraylen, MPI_DOUBLE, tosend - 1, 0, gcomm);
-	// 			}
-	// 		}
-	// 		else if ((acurrstep[aindex] % atevery[aindex] == 0) && ((acurrstep[aindex] / atevery[aindex]) < (atsteps[aindex] / atevery[aindex])))
-	// 		{
-	// 			MPI_Ssend(&atom.nlocal, 1, MPI_LONG_LONG_INT, tosend - 1, 0, gcomm);
-	// 			MPI_Ssend(array, arraylen, MPI_DOUBLE, tosend - 1, 0, gcomm);
-	// 		}
-	// 	}
-	// 	else
-	// 	{
-	// 		//long long int  disp;
-	// 		if (aindex == 4 || aindex == 5)
-	// 		{
-	// 			if (acurrstep[aindex] < atsteps[aindex])
-	// 			{
-	// 				long long int disp = 0;
-
-	// 				MPI_Scan(&nlocal, &disp, 1, MPI_LONG_LONG_INT, MPI_SUM, gcomm);
-	// 				MPI_Win_create(MPI_BOTTOM, 0, sizeof(double), MPI_INFO_NULL, gcomm, &win);
-	// 				disp = disp - nlocal;
-	// 				MPI_Win_fence(0, win);
-
-	// 				MPI_Put(array, arraylen, MPI_DOUBLE, tosend - 1, disp * adim[aindex], arraylen, MPI_DOUBLE, win);
-
-	// 				MPI_Win_fence(0, win);
-
-	// 				MPI_Win_free(&win);
-	// 			}
-	// 		}
-	// 		else if ((acurrstep[aindex] % atevery[aindex] == 0) && ((acurrstep[aindex] / atevery[aindex]) < (atsteps[aindex] / atevery[aindex])))
-	// 		{
-	// 			long long int disp = 0;
-	// 			MPI_Scan(&nlocal, &disp, 1, MPI_LONG_LONG_INT, MPI_SUM, gcomm);
-	// 			MPI_Win_create(MPI_BOTTOM, 0, sizeof(double), MPI_INFO_NULL, gcomm, &win);
-	// 			disp = disp - nlocal;
-
-	// 			MPI_Win_fence(0, win);
-
-	// 			MPI_Put(array, arraylen, MPI_DOUBLE, tosend - 1, disp * adim[aindex], arraylen, MPI_DOUBLE, win);
-
-	// 			MPI_Win_fence(0, win);
-
-	// 			MPI_Win_free(&win);
-	// 		}
-	// 	}
-
-	// 	MPI_Barrier(comm.subcomm);
-
-	// #endif
+	transmitter.communicate(array, nlocal, adim[aindex], acurrstep[aindex], grank);
 }
-
-
 
 void Dump::aunpack()
 {
@@ -192,29 +127,26 @@ void Dump::aunpack()
 		delete array;
 }
 
-
 void Dump::writeAOutput(Atom &atom, Comm &comm, int n, int aindex)
 {
 
-	
 	if (acurrstep[aindex] >= atsteps[aindex])
 	{
 		return;
 	}
-	
+
 	if ((acurrstep[aindex] % atevery[aindex]) == 0 && istemporal[aindex] == 0)
 	{
 		apack(atom, comm, n, aindex);
 		aunpack();
 	}
 	else if (istemporal[aindex])
-	{	
+	{
 		apack(atom, comm, n, aindex);
 		aunpack();
 	}
 
 	acurrstep[aindex]++;
-	
 }
 
 void Dump::aalloc(int anum)
@@ -233,8 +165,6 @@ void Dump::aalloc(int anum)
 
 void Dump::finiAnalysisDump()
 {
-
-	//close files. cleanup.
 
 	delete adim;
 	delete atevery;

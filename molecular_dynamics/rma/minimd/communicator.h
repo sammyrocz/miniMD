@@ -13,6 +13,7 @@ class Communicator
 private:
     long long int *acount; // atoms count
     void sendrecv(void *temp, long long int atoms,int dimension, int ts, int rank);
+    void rma(void *temp, long long int atoms,int dimension, int ts, int rank);
 
     
 
