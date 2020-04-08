@@ -104,7 +104,7 @@ int main(int argc, char **argv)
 
             Modalysis mod;
             mod.init(argc,argv, commtype);
-            mod.coanalyze();
+            mod.process();
 
             #endif
         }

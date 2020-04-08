@@ -71,17 +71,16 @@ public:
     ~Modalysis();
 
     void init(int argc, char **argv,char *);
-    void coanalyze();
+    void coanalyze(double **, int,int);
     void allocate();  // allocates required memory for setup
     void process();
-    void checktimestep();
     void readdata(int index,int timestep);
 
     void compute_vacf(double *arr);
     void compute_msd(double *);
     void compute_histo(double *);
-    void compute_fft_1d(double *, double **, int, long long int);
-    void cleanup();
+    void compute_fft_1d(int tstart, int tend, int atom, double **arr);
+    
 };
 
 #endif

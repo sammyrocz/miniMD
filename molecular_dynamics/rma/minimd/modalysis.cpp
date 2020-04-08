@@ -35,6 +35,7 @@ Modalysis::Modalysis()
 
 Modalysis::~Modalysis()
 {
+    
     // destructing the created objects
 }
 
@@ -156,4 +157,11 @@ void Modalysis::init(int argc, char **argv, char *commt)
             array[i][j] = new double[size * adim[i]];
         }
     }
+
+    // used in msd 
+    size = adim[0] * tatoms;
+    xoriginal = new double[size];
+
+    size = adim[1] * tatoms;
+    voriginal = new double[size]; 
 }

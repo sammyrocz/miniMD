@@ -12,17 +12,18 @@ Communicator::~Communicator()
 {
 }
 
-void Communicator::sendrecv(void *temp, long long int atoms, int dimenstion, int ts, int rank)
+void Communicator::sendrecv(void *temp, long long int &atoms, int dimenstion, int ts, int rank)
 {
     MPI_Gather(&atoms, 1, MPI_LONG_LONG_INT, acount, 1, MPI_LONG_LONG_INT, rcvrank, gcomm);
 
     if (rcvrank == rank)
     {
         double **array = (double **)temp;
-
+        ;
         for (int i = nsim; i > 0; i--)
         {
             acount[i] = acount[i - 1];
+            atoms += acount[i];
         }
 
         acount[0] = 0;
@@ -39,7 +40,7 @@ void Communicator::sendrecv(void *temp, long long int atoms, int dimenstion, int
     }
 }
 
-void Communicator::rma(void *temp, long long int atoms, int dimenstion, int ts, int rank)
+void Communicator::rma(void *temp, long long int &atoms, int dimenstion, int ts, int rank)
 {
 
     long long int disp = 0;
@@ -52,6 +53,7 @@ void Communicator::rma(void *temp, long long int atoms, int dimenstion, int ts, 
         double **array = (double **)temp;
         size = disp * dimenstion;
         MPI_Win_create(array[ts], size * sizeof(double), sizeof(double), MPI_INFO_NULL, gcomm, &win);
+        atoms = disp; // updating the atom to be reflected in coanalysis
     }
     else
     {
@@ -74,7 +76,7 @@ void Communicator::rma(void *temp, long long int atoms, int dimenstion, int ts, 
     MPI_Win_free(&win);
 }
 
-void Communicator::communicate(void *temp, long long int atoms, int dimension, int ts, int rank)
+void Communicator::communicate(void *temp, long long int &atoms, int dimension, int ts, int rank)
 {
 
     if (commtype == 0)
