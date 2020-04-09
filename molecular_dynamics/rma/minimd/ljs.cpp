@@ -61,7 +61,7 @@ void output(In &, Atom &, Force*, Neighbor &, Comm &,
             Thermo &, Integrate &, Timer &, int);
 int read_lammps_data(Atom &atom, Comm &comm, Neighbor &neighbor, Integrate &integrate, Thermo &thermo, char* file, int units);
 
-int miniMDinit(int argc, char** argv,char *commtype)
+int miniMDinit(int argc, char** argv)
 {
   In in;
   in.datafile = NULL;
@@ -505,7 +505,7 @@ int miniMDinit(int argc, char** argv,char *commtype)
 	//if (me == 0) 
 	//	initConnection();
   
-	dump.initDump(comm, integrate.ntimes, dump_frequency, dumpdir, analysiscfg,commtype);	
+	dump.initDump(comm, integrate.ntimes, dump_frequency, dumpdir, analysiscfg);	
 
 	if (dumpdir != NULL) delete dumpdir;
 	if (analysiscfg != NULL) delete analysiscfg;

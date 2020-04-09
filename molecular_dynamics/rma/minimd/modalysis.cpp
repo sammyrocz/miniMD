@@ -35,7 +35,7 @@ Modalysis::Modalysis()
 
 Modalysis::~Modalysis()
 {
-    
+
     // destructing the created objects
 }
 
@@ -59,12 +59,10 @@ void Modalysis::allocate()
     vacf = new double[4];
 }
 
-void Modalysis::init(int argc, char **argv, char *commt)
+void Modalysis::init(int argc, char **argv)
 {
 
     num_steps = 500;
-    commtype = commt;
-
     gcomm = GroupComm::getinstance()->comm;
     ucomm = UniverseComm::getinstance()->comm;
     transmitter.gcomm = GroupComm::getinstance()->comm;
@@ -73,21 +71,30 @@ void Modalysis::init(int argc, char **argv, char *commt)
     MPI_Comm_rank(gcomm, &grank);
 
     int i;
-
+    int nx, ny, nz;
     for (i = 0; i < argc; i++)
     {
 
-        if (strcmp(argv[i], "-atoms") == 0)
-        {
-            tatoms = atoll(argv[++i]);
-        }
-        else if (strcmp(argv[i], "-acfg") == 0)
+        if (strcmp(argv[i], "-acfg") == 0)
         {
             config = new char[256];
             strcpy(config, argv[++i]);
         }
+        else if (strcmp(argv[i], "-nx") == 0)
+        {
+            nx = atoi(argv[++i]);
+        }
+        else if (strcmp(argv[i], "-ny") == 0)
+        {
+            ny = atoi(argv[++i]);
+        }
+        else if (strcmp(argv[i], "-nz") == 0)
+        {
+            nz = atoi(argv[++i]);
+        }
     }
 
+    tatoms = nx * ny * nz * 4;
     if (config == NULL)
     {
         printf("Config file NULL error %d\n", ucomm);
@@ -158,10 +165,10 @@ void Modalysis::init(int argc, char **argv, char *commt)
         }
     }
 
-    // used in msd 
+    // used in msd
     size = adim[0] * tatoms;
     xoriginal = new double[size];
 
     size = adim[1] * tatoms;
-    voriginal = new double[size]; 
+    voriginal = new double[size];
 }

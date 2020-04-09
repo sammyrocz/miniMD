@@ -45,7 +45,7 @@ Dump::Dump(){
 
 Dump::~Dump() {}
 
-void Dump::initDump(Comm &comm, int ts, int dfreq, char *dumpdir, char *analysiscfg,char *commt) 
+void Dump::initDump(Comm &comm, int ts, int dfreq, char *dumpdir, char *analysiscfg) 
 {
 
 /*
@@ -57,7 +57,6 @@ void Dump::initDump(Comm &comm, int ts, int dfreq, char *dumpdir, char *analysis
 		}
 	}
 */
-	commtype = commt;
 	int size;
 	MPI_Type_size(MPI_DOUBLE, &size);
 	if (size != sizeof(MMD_float))

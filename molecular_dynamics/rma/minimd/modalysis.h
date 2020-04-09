@@ -56,7 +56,6 @@ private:
     
     double *msd;
     double *vacf;
-    char *commtype;
     int grank; // group rank
     
     MPI_Offset mpifo;
@@ -70,7 +69,7 @@ public:
     Modalysis();
     ~Modalysis();
 
-    void init(int argc, char **argv,char *);
+    void init(int argc, char **argv);
     void coanalyze(double **, int,int);
     void allocate();  // allocates required memory for setup
     void process();

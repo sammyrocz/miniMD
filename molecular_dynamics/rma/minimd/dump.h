@@ -51,7 +51,6 @@ class Dump
 	// modified
 	int *timer;
 	MPI_Win win;
-	char *commtype;
 	Communicator transmitter;
 
 public:
@@ -60,7 +59,7 @@ public:
 
 	int getFreq();
 	char *getConfigFile();
-	void initDump(Comm &, int, int, char *, char *,char *);
+	void initDump(Comm &, int, int, char *, char *);
 	void writeFile(Atom &, int, Comm &);
 	void pack(Atom &, int, Comm &);
 	void dump(Atom &, int, Comm &);

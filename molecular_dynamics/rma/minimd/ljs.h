@@ -50,6 +50,6 @@ struct In {
   int thermo_nstat;
 };
 
-int miniMDinit(int,char **,char *);
+int miniMDinit(int,char **);
 
 #endif

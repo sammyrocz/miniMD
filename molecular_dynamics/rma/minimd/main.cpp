@@ -96,14 +96,14 @@ int main(int argc, char **argv)
         if (proctype == SIMULATION)
         {
 
-            miniMDinit(argc, argv, commtype);
+            miniMDinit(argc, argv);
         }
         else
         {
             #ifdef MODALYSIS
 
             Modalysis mod;
-            mod.init(argc,argv, commtype);
+            mod.init(argc,argv);
             mod.process();
 
             #endif
@@ -111,7 +111,7 @@ int main(int argc, char **argv)
     }
     else
     {
-        miniMDinit(argc, argv, commtype);
+        miniMDinit(argc, argv);
     }
 
     MPI_Barrier(MPI_COMM_WORLD);
