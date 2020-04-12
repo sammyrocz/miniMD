@@ -151,8 +151,7 @@ void Modalysis::init(int argc, char **argv)
 
     // allocating space for recieving the data
 
-    //long long int size = (long long int)(((double)tatoms) * (0.9));
-
+    
     long long int size = tatoms;
 
     for (int i = 0; i < anum; i++)

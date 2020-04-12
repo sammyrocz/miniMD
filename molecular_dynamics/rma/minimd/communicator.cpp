@@ -75,18 +75,19 @@ void Communicator::rma(void *temp, long long int &atoms, int dimenstion, int ts,
 
     MPI_Win_free(&win);
 }
-
-void Communicator::communicate(void *temp, long long int &atoms, int dimension, int ts, int rank)
+ 
+void Communicator::communicate(void *data, long long int &atoms, int dimension, int ts, int rank)
 {
 
+    // data holds the buffer for both sender and receiver, atoms is the total no of atoms ( reciver will have 0 atoms at this point)
     if (commtype == 0)
     {
         // sendrecv function
-        sendrecv(temp, atoms, dimension, ts, rank);
+        sendrecv(data, atoms, dimension, ts, rank);
     }
     else if (commtype == 1)
     {
 
-        rma(temp, atoms, dimension, ts, rank);
+        rma(data, atoms, dimension, ts, rank);
     }
 }

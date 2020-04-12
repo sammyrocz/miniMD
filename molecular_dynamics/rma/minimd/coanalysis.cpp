@@ -42,7 +42,7 @@ void Modalysis::coanalyze(double **array, int aindex, int ts)
         break;
     }
 }
-
+// reads the data from the simulation processes
 void Modalysis::readdata(int aindex, int ts)
 {
 
@@ -53,6 +53,7 @@ void Modalysis::readdata(int aindex, int ts)
     {
 
         transmitter.communicate(array[aindex], nlocal, adim[aindex], acurrstep[aindex], grank);
+        
         coanalyze(array[aindex], aindex, acurrstep[aindex]);
     }
     else if (istemporal[aindex])
@@ -60,7 +61,7 @@ void Modalysis::readdata(int aindex, int ts)
         transmitter.communicate(array[aindex], nlocal, adim[aindex], acurrstep[aindex], grank);
 
         if ((ts + 1) % atevery[aindex] == 0)
-        {
+        {   
             coanalyze(array[aindex], aindex, acurrstep[aindex]);
         }
     }

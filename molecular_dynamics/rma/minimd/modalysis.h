@@ -43,10 +43,9 @@ private:
     // *** ----- data for communication ----- *** //
 
     long long int tatoms; // total atoms
-    long long int nlocal;
+    long long int nlocal; // #atoms for the process
     
     
-    // long long int atoms;
 
     double ***temporalarr; // temporal data
     int **temporalsize;
@@ -72,7 +71,7 @@ public:
     void init(int argc, char **argv);
     void coanalyze(double **, int,int);
     void allocate();  // allocates required memory for setup
-    void process();
+    void process(); 
     void readdata(int index,int timestep);
 
     void compute_vacf(double *arr);
