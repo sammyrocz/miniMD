@@ -4,17 +4,27 @@ Communicator::Communicator()
 {
 
     acount = new long long int[(nana + nsim)];
-
     rcvrank = nsim;
+}
+
+void Communicator::init(int a)
+{   
+    anum = a;
+    commtime = new double[anum];
+    
+    for (int i = 0; i < anum; i++)
+        commtime[i] = 0.0;
 }
 
 Communicator::~Communicator()
 {
 }
 
-void Communicator::sendrecv(void *temp, long long int &atoms, int dimenstion, int ts, int rank)
+void Communicator::sendrecv(void *temp, long long int &atoms, int dimenstion, int ts, int rank, int aindex)
 {
     MPI_Gather(&atoms, 1, MPI_LONG_LONG_INT, acount, 1, MPI_LONG_LONG_INT, rcvrank, gcomm);
+
+    double stime = MPI_Wtime();
 
     if (rcvrank == rank)
     {
@@ -38,15 +48,20 @@ void Communicator::sendrecv(void *temp, long long int &atoms, int dimenstion, in
         double *array = (double *)temp;
         MPI_Ssend(array, dimenstion * atoms, MPI_DOUBLE, rcvrank, ts, gcomm);
     }
+
+    stime = MPI_Wtime() - stime;
+    double time;
+    MPI_Allreduce(&stime, &time, 1, MPI_DOUBLE, MPI_MAX, ucomm);
+    commtime[aindex] += time;
 }
 
-void Communicator::rma(void *temp, long long int &atoms, int dimenstion, int ts, int rank)
+void Communicator::rma(void *temp, long long int &atoms, int dimenstion, int ts, int rank, int aindex)
 {
 
     long long int disp = 0;
     long long int size = 0;
     MPI_Scan(&atoms, &disp, 1, MPI_LONG_LONG_INT, MPI_SUM, gcomm);
-    
+
     MPI_Win win;
     if (rank == rcvrank)
     {
@@ -60,6 +75,7 @@ void Communicator::rma(void *temp, long long int &atoms, int dimenstion, int ts,
         MPI_Win_create(MPI_BOTTOM, 0, sizeof(double), MPI_INFO_NULL, gcomm, &win);
     }
 
+    double stime = MPI_Wtime();
     MPI_Win_fence(0, win);
 
     if (rank != rcvrank)
@@ -72,22 +88,25 @@ void Communicator::rma(void *temp, long long int &atoms, int dimenstion, int ts,
     }
 
     MPI_Win_fence(0, win);
-
+    stime = MPI_Wtime() - stime;
+    double time;
+    MPI_Allreduce(&stime, &time, 1, MPI_DOUBLE, MPI_MAX, ucomm);
+    commtime[aindex] += time;
     MPI_Win_free(&win);
 }
- 
-void Communicator::communicate(void *data, long long int &atoms, int dimension, int ts, int rank)
+
+void Communicator::communicate(void *data, long long int &atoms, int dimension, int ts, int rank, int aindex)
 {
 
     // data holds the buffer for both sender and receiver, atoms is the total no of atoms ( reciver will have 0 atoms at this point)
     if (commtype == 0)
     {
         // sendrecv function
-        sendrecv(data, atoms, dimension, ts, rank);
+        sendrecv(data, atoms, dimension, ts, rank, aindex);
     }
     else if (commtype == 1)
     {
 
-        rma(data, atoms, dimension, ts, rank);
+        rma(data, atoms, dimension, ts, rank, aindex);
     }
 }

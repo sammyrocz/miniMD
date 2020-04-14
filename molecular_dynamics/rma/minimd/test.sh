@@ -6,5 +6,5 @@ nx=32
 ny=32
 nz=32
 np=6
-mpirun -np $np ./miniMD -acfg config.sample -nx $nx -ny $ny -nz $nz -npr 2:1 -comm RMA | tee output.txt
+mpirun -np $np ./miniMD -acfg config.sample -nx $nx -ny $ny -nz $nz -npr 2:1 -comm SEND | tee output.txt
 #du -h *.txt

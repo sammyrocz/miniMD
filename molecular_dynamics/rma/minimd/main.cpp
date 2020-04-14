@@ -14,6 +14,8 @@ int Communicator::commtype = 0;
 int Communicator::nana = 0;
 int Communicator::nsim = 0;
 int Communicator::rcvrank = 0;
+int Communicator::anum = 0;
+double * Communicator::commtime = 0;
 
 int main(int argc, char **argv)
 {
@@ -24,12 +26,12 @@ int main(int argc, char **argv)
     int nprocs;
     int proctype;
     char *commtype = 0;
-    
+
     MPI_Comm_rank(MPI_COMM_WORLD, &me);
     MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
 
     char *pratio = NULL; // simulation to analysis processes ratio
-    
+
     for (int i = 0; i < argc; i++)
     {
 
@@ -42,15 +44,20 @@ int main(int argc, char **argv)
             else
                 printf("Error:Ratio not specified!\n");
             continue;
-        } else if(strcmp(argv[i],"-comm") == 0){
-                char *temp = new char[256];
-                strcpy(temp,argv[++i]);
+        }
+        else if (strcmp(argv[i], "-comm") == 0)
+        {
+            char *temp = new char[256];
+            strcpy(temp, argv[++i]);
 
-                if(strcmp(temp,"SEND") == 0){
-                    Communicator::commtype = 0;  // communication type is SEND/RECV
-                } else {
-                    Communicator::commtype = 1; // communcation type is RMA
-                }
+            if (strcmp(temp, "SEND") == 0)
+            {
+                Communicator::commtype = 0; // communication type is SEND/RECV
+            }
+            else
+            {
+                Communicator::commtype = 1; // communcation type is RMA
+            }
         }
     }
 
@@ -60,16 +67,15 @@ int main(int argc, char **argv)
     MPI_Comm intercomm; // intracommunicator
     MPI_Comm intracomm; //
 
-    
     if (pratio != 0)
     {
 
         // Dividing the communicator
 
         calstar(pratio, nsim, nana);
-        
+
         Communicator::nana = nana;
-        Communicator::nsim = nsim;    
+        Communicator::nsim = nsim;
         Communicator::rcvrank = nsim;
 
         if (nprocs % (nsim + nana) != 0)
@@ -100,13 +106,13 @@ int main(int argc, char **argv)
         }
         else
         {
-            #ifdef MODALYSIS
+#ifdef MODALYSIS
 
             Modalysis mod;
-            mod.init(argc,argv);
+            mod.init(argc, argv);
             mod.process();
 
-            #endif
+#endif
         }
     }
     else
@@ -114,6 +120,29 @@ int main(int argc, char **argv)
         miniMDinit(argc, argv);
     }
 
+    
+
     MPI_Barrier(MPI_COMM_WORLD);
+    int r;
+    MPI_Comm_rank(UniverseComm::getinstance()->comm, &r);
+    double ttime = 0;
+    for (int i = 0; i < Communicator::anum; i++)
+    {
+        ttime += Communicator::commtime[i];
+    }
+    if (proctype == SIMULATION)
+    {
+        if (r == 0)
+        {
+            printf("Simulation Time: %f\n", ttime);
+        }
+    }
+    else
+    {
+        if (r == 0)
+        {
+            printf("Analysis Time: %f\n", ttime);
+        }
+    }
     MPI_Finalize();
 }

@@ -61,7 +61,7 @@ void Dump::initAnalysisDump(Comm &comm, char *analysiscfg)
 	}
 
 	MPI_Bcast(&anum, 1, MPI_INT, 0, comm.subcomm);
-
+	transmitter.init(anum);
 	//allocate anum elements in all processes but 0 (reader)
 	if (afreq == NULL)
 		aalloc(anum);
@@ -118,7 +118,7 @@ void Dump::apack(Atom &atom, Comm &comm, int n, int aindex)
 			array[i] = atom.v[i * PAD + 1];
 	}
 
-	transmitter.communicate(array, nlocal, adim[aindex], acurrstep[aindex], grank);
+	transmitter.communicate(array, nlocal, adim[aindex], acurrstep[aindex], grank, aindex);
 }
 
 void Dump::aunpack()

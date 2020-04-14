@@ -125,7 +125,7 @@ void Modalysis::init(int argc, char **argv)
     }
 
     MPI_Bcast(&anum, 1, MPI_INT, 0, ucomm);
-
+    transmitter.init(anum);
     if (afreq == NULL)
         allocate();
 
