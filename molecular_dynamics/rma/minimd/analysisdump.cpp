@@ -135,16 +135,8 @@ void Dump::writeAOutput(Atom &atom, Comm &comm, int n, int aindex)
 		return;
 	}
 
-	if ((acurrstep[aindex] % atevery[aindex]) == 0 && istemporal[aindex] == 0)
-	{
-		apack(atom, comm, n, aindex);
-		aunpack();
-	}
-	else if (istemporal[aindex])
-	{
-		apack(atom, comm, n, aindex);
-		aunpack();
-	}
+	apack(atom, comm, n, aindex);
+	aunpack();
 
 	acurrstep[aindex]++;
 }
