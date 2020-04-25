@@ -36,8 +36,9 @@ void Communicator::sendrecv(void *temp, long long int &atoms, int dimenstion, in
         }
         acount[0] = 0;
     }
-    MPI_Barrier(gcomm);
     double stime = MPI_Wtime();
+    MPI_Barrier(gcomm);
+    
     if(rcvrank == rank){
         double **array = (double **)temp;
         for (int i = 0; i < nsim; i++)
@@ -51,8 +52,9 @@ void Communicator::sendrecv(void *temp, long long int &atoms, int dimenstion, in
         MPI_Ssend(array, dimenstion * atoms, MPI_DOUBLE, rcvrank, ts, gcomm);
     }
 
-    stime = MPI_Wtime() - stime;
+    
     MPI_Barrier(gcomm);
+    stime = MPI_Wtime() - stime;
     double time;
     MPI_Allreduce(&stime, &time, 1, MPI_DOUBLE, MPI_MAX, ucomm);
     commtime[aindex] += time;
@@ -80,8 +82,9 @@ void Communicator::rma(void *temp, long long int &atoms, int dimenstion, int ts,
     
     
     MPI_Win_fence(0, win);
-    MPI_Barrier(gcomm);
     double stime = MPI_Wtime();
+    MPI_Barrier(gcomm);
+    
     if (rank != rcvrank)
     {
 
@@ -90,8 +93,9 @@ void Communicator::rma(void *temp, long long int &atoms, int dimenstion, int ts,
         disp = (disp - atoms);
         MPI_Put(array, size, MPI_DOUBLE, rcvrank, disp * dimenstion, size, MPI_DOUBLE, win);
     }
-    stime = MPI_Wtime() - stime;
+
     MPI_Barrier(gcomm);
+    stime = MPI_Wtime() - stime;
     MPI_Win_fence(0, win);
     
     double time;
