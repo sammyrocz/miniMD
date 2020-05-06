@@ -36,8 +36,8 @@ void Communicator::sendrecv(void *temp, long long int &atoms, int dimenstion, in
         }
         acount[0] = 0;
     }
-    double stime = MPI_Wtime();
     MPI_Barrier(gcomm);
+    double stime = MPI_Wtime();
     
     if(rcvrank == rank){
         double **array = (double **)temp;
@@ -82,8 +82,8 @@ void Communicator::rma(void *temp, long long int &atoms, int dimenstion, int ts,
     
     
     MPI_Win_fence(0, win);
-    double stime = MPI_Wtime();
     MPI_Barrier(gcomm);
+    double stime = MPI_Wtime();
     
     if (rank != rcvrank)
     {

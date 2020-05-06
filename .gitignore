@@ -6,3 +6,6 @@
 **/rma/minimd/test.sh
 **/modalysis/modalysis
 **/minimd/config.sample
+**/modalysis/modalysis
+*.o
+**/modalysis/*.txt
