@@ -137,12 +137,5 @@ int main(int argc, char **argv)
             printf("Simulation Time: %f\n", ttime);
         }
     }
-    else
-    {
-        if (r == 0)
-        {
-            printf("Analysis Time: %f\n", ttime);
-        }
-    }
     MPI_Finalize();
 }

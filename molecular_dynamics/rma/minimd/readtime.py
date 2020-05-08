@@ -22,19 +22,11 @@ fd = open(path,"r")
 lines = fd.readlines()
 
 simt = 0.0
-anat = 0.0
 
 for l in lines:
-    x = re.search("^Analysis Time",l)
+    x = re.search("^Simulation Time",l)
     if x:
         """ current line is simulation"""
         l = l.split()
-        anat = float(l[2])
-    else:
-        """current line is analysis"""
-        x = re.search("^Simulation Time",l)
-        if x:
-            l = l.split()
-            simt = float(l[2])
-            
-print(str(simt) + " " + str(anat))
+        simt = float(l[2])
+print(str(simt))
