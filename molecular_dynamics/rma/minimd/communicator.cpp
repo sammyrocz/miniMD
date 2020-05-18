@@ -8,10 +8,10 @@ Communicator::Communicator()
 }
 
 void Communicator::init(int a)
-{   
+{
     anum = a;
     commtime = new double[anum];
-    
+
     for (int i = 0; i < anum; i++)
         commtime[i] = 0.0;
 }
@@ -24,11 +24,9 @@ void Communicator::sendrecv(void *temp, long long int &atoms, int dimenstion, in
 {
     MPI_Gather(&atoms, 1, MPI_LONG_LONG_INT, acount, 1, MPI_LONG_LONG_INT, rcvrank, gcomm);
 
-
     if (rcvrank == rank)
     {
-        
-        
+
         for (int i = nsim; i > 0; i--)
         {
             acount[i] = acount[i - 1];
@@ -36,10 +34,9 @@ void Communicator::sendrecv(void *temp, long long int &atoms, int dimenstion, in
         }
         acount[0] = 0;
     }
-    MPI_Barrier(gcomm);
-    double stime = MPI_Wtime();
     
-    if(rcvrank == rank){
+    if (rcvrank == rank)
+    {
         double **array = (double **)temp;
         for (int i = 0; i < nsim; i++)
         {
@@ -53,56 +50,64 @@ void Communicator::sendrecv(void *temp, long long int &atoms, int dimenstion, in
     }
 
     
-    MPI_Barrier(gcomm);
-    stime = MPI_Wtime() - stime;
-    double time;
-    MPI_Allreduce(&stime, &time, 1, MPI_DOUBLE, MPI_MAX, ucomm);
-    commtime[aindex] += time;
 }
 
 void Communicator::rma(void *temp, long long int &atoms, int dimenstion, int ts, int rank, int aindex)
 {
 
-    long long int disp = 0;
-    long long int size = 0;
-    MPI_Scan(&atoms, &disp, 1, MPI_LONG_LONG_INT, MPI_SUM, gcomm);
-    double **array;
-    MPI_Win win;
+    MPI_Win *windows = new MPI_Win[nsim];
+
+    MPI_Gather(&atoms, 1, MPI_LONG_LONG_INT, acount, 1, MPI_LONG_LONG_INT, rcvrank, gcomm);
+
     if (rank == rcvrank)
     {
-        double **array = (double **)temp;
-        size = disp * dimenstion;
-        MPI_Win_create(array[ts], size * sizeof(double), sizeof(double), MPI_INFO_NULL, gcomm, &win);
-        atoms = disp; // updating the atom to be reflected in coanalysis
+        // create window for reciver
+        for (int i = 0; i < nsim; i++)
+            MPI_Win_create(MPI_BOTTOM, 0, sizeof(double), MPI_INFO_NULL, gcomm, &windows[i]);
+
+        for (int i = nsim; i > 0; i--)
+        {
+            acount[i] = acount[i - 1];
+            atoms += acount[i];
+        }
+        acount[0] = 0;
     }
     else
     {
-        MPI_Win_create(MPI_BOTTOM, 0, sizeof(double), MPI_INFO_NULL, gcomm, &win);
+        double *array = (double *)temp;
+
+        for (int i = 0; i < nsim; i++)
+        {
+
+            if (i != rank)
+            {
+                MPI_Win_create(MPI_BOTTOM, 0, sizeof(double), MPI_INFO_NULL, gcomm, &windows[i]);
+            }
+            else
+            {
+
+                MPI_Win_create(array, atoms * dimenstion * sizeof(double), sizeof(double), MPI_INFO_NULL, gcomm, &windows[rank]);
+            }
+        }
     }
-    
-    
-    MPI_Win_fence(0, win);
-    MPI_Barrier(gcomm);
-    double stime = MPI_Wtime();
-    
-    if (rank != rcvrank)
+
+    if (rank == rcvrank)
     {
 
-        double *array = (double *)temp;
-        size = atoms * dimenstion;
-        disp = (disp - atoms);
-        MPI_Put(array, size, MPI_DOUBLE, rcvrank, disp * dimenstion, size, MPI_DOUBLE, win);
+        for (int i = 0; i < nsim; i++)
+        {
+
+            MPI_Win_lock(MPI_LOCK_EXCLUSIVE, rcvrank, 0, windows[i]);
+
+            double **array = (double **)temp;
+            MPI_Get((array[ts] + (dimenstion * acount[i])), dimenstion * acount[i + 1], MPI_DOUBLE, i, 0, dimenstion * acount[i + 1], MPI_DOUBLE, windows[i]);
+
+            MPI_Win_unlock(rcvrank, windows[i]);
+        }
     }
 
-    MPI_Barrier(gcomm);
-    stime = MPI_Wtime() - stime;
-    MPI_Win_fence(0, win);
-    
-    double time;
-    MPI_Allreduce(&stime, &time, 1, MPI_DOUBLE, MPI_MAX, ucomm);
-    commtime[aindex] += time;
-    MPI_Win_free(&win);
-    
+    for (int i = 0; i < nsim; i++)
+        MPI_Win_free(&windows[i]);
 }
 
 void Communicator::communicate(void *data, long long int &atoms, int dimension, int ts, int rank, int aindex)

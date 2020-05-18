@@ -123,19 +123,5 @@ int main(int argc, char **argv)
     
 
     MPI_Barrier(MPI_COMM_WORLD);
-    int r;
-    MPI_Comm_rank(UniverseComm::getinstance()->comm, &r);
-    double ttime = 0;
-    for (int i = 0; i < Communicator::anum; i++)
-    {
-        ttime += Communicator::commtime[i];
-    }
-    if (proctype == SIMULATION)
-    {
-        if (r == 0)
-        {
-            printf("Simulation Time: %f\n", ttime);
-        }
-    }
     MPI_Finalize();
 }
