@@ -34,7 +34,7 @@ void Communicator::sendrecv(void *temp, long long int &atoms, int dimenstion, in
         }
         acount[0] = 0;
     }
-    
+
     if (rcvrank == rank)
     {
         double **array = (double **)temp;
@@ -48,22 +48,18 @@ void Communicator::sendrecv(void *temp, long long int &atoms, int dimenstion, in
         double *array = (double *)temp;
         MPI_Ssend(array, dimenstion * atoms, MPI_DOUBLE, rcvrank, ts, gcomm);
     }
-
-    
 }
 
 void Communicator::rma(void *temp, long long int &atoms, int dimenstion, int ts, int rank, int aindex)
 {
 
-    MPI_Win *windows = new MPI_Win[nsim];
+    MPI_Win win;
 
     MPI_Gather(&atoms, 1, MPI_LONG_LONG_INT, acount, 1, MPI_LONG_LONG_INT, rcvrank, gcomm);
 
     if (rank == rcvrank)
     {
-        // create window for reciver
-        for (int i = 0; i < nsim; i++)
-            MPI_Win_create(MPI_BOTTOM, 0, sizeof(double), MPI_INFO_NULL, gcomm, &windows[i]);
+        MPI_Win_create(MPI_BOTTOM, 0, sizeof(double), MPI_INFO_NULL, gcomm, &win);
 
         for (int i = nsim; i > 0; i--)
         {
@@ -76,38 +72,34 @@ void Communicator::rma(void *temp, long long int &atoms, int dimenstion, int ts,
     {
         double *array = (double *)temp;
 
-        for (int i = 0; i < nsim; i++)
-        {
-
-            if (i != rank)
-            {
-                MPI_Win_create(MPI_BOTTOM, 0, sizeof(double), MPI_INFO_NULL, gcomm, &windows[i]);
-            }
-            else
-            {
-
-                MPI_Win_create(array, atoms * dimenstion * sizeof(double), sizeof(double), MPI_INFO_NULL, gcomm, &windows[rank]);
-            }
-        }
+        MPI_Win_create(array, atoms * dimenstion * sizeof(double), sizeof(double), MPI_INFO_NULL, gcomm, &win);
     }
+
+
+   
+        
+         MPI_Win_lock(MPI_LOCK_EXCLUSIVE, rcvrank, 0, win);
 
     if (rank == rcvrank)
     {
+        double **array = (double **)temp;
 
         for (int i = 0; i < nsim; i++)
         {
 
-            MPI_Win_lock(MPI_LOCK_EXCLUSIVE, rcvrank, 0, windows[i]);
-
-            double **array = (double **)temp;
-            MPI_Get((array[ts] + (dimenstion * acount[i])), dimenstion * acount[i + 1], MPI_DOUBLE, i, 0, dimenstion * acount[i + 1], MPI_DOUBLE, windows[i]);
-
-            MPI_Win_unlock(rcvrank, windows[i]);
+            MPI_Get((array[ts] + (dimenstion * acount[i])), dimenstion * acount[i + 1], MPI_DOUBLE, i, 0, dimenstion * acount[i + 1], MPI_DOUBLE, win);
         }
+
     }
 
-    for (int i = 0; i < nsim; i++)
-        MPI_Win_free(&windows[i]);
+        MPI_Win_unlock(rcvrank, win);
+      
+   
+    
+   
+    MPI_Win_free(&win);
+
+
 }
 
 void Communicator::communicate(void *data, long long int &atoms, int dimension, int ts, int rank, int aindex)
