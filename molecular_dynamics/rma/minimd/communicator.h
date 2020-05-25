@@ -25,6 +25,17 @@ public:
     static double *commtime; // communicaton time for each analysis process
     static int anum;
     
+    // RMA Specific data memebers
+    bool pending_request;
+    MPI_Win win;
+    MPI_Group comm_group;
+    MPI_Group rmagroup;
+    MPI_Request request;
+
+    void pre_rma(int rank);
+    
+
+
     Communicator();
     ~Communicator();
     void communicate(void *input, long long int &atoms, int dimension, int ts, int rank, int aindex);

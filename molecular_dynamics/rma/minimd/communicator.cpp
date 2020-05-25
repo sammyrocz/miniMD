@@ -4,6 +4,7 @@ Communicator::Communicator()
 {
 
     acount = new long long int[(nana + nsim)];
+    pending_request = false;
     rcvrank = nsim;
 }
 
@@ -19,6 +20,31 @@ void Communicator::init(int a)
 Communicator::~Communicator()
 {
 }
+
+void Communicator::pre_rma(int rank)
+{
+
+    if (commtype == 0) // Request Type SEND
+        return;
+
+    // Request is of type POST ONLY
+
+    if (pending_request == false) // no pending requests
+        return;
+
+    if (rank != rcvrank)
+    {
+        MPI_Win_wait(win);
+        
+    } 
+
+    MPI_Win_free(&win);
+    MPI_Group_free(&rmagroup);
+    MPI_Group_free(&comm_group);
+
+    pending_request = true;
+}
+
 
 void Communicator::sendrecv(void *temp, long long int &atoms, int dimenstion, int ts, int rank, int aindex)
 {
@@ -53,20 +79,11 @@ void Communicator::sendrecv(void *temp, long long int &atoms, int dimenstion, in
 void Communicator::rma(void *temp, long long int &atoms, int dimenstion, int ts, int rank, int aindex)
 {
 
-    MPI_Win win;
-
-    MPI_Gather(&atoms, 1, MPI_LONG_LONG_INT, acount, 1, MPI_LONG_LONG_INT, rcvrank, gcomm);
+    MPI_Igather(&atoms, 1, MPI_LONG_LONG_INT, acount, 1, MPI_LONG_LONG_INT, rcvrank, gcomm,&request);
 
     if (rank == rcvrank)
     {
         MPI_Win_create(MPI_BOTTOM, 0, sizeof(double), MPI_INFO_NULL, gcomm, &win);
-
-        for (int i = nsim; i > 0; i--)
-        {
-            acount[i] = acount[i - 1];
-            atoms += acount[i];
-        }
-        acount[0] = 0;
     }
     else
     {
@@ -75,13 +92,31 @@ void Communicator::rma(void *temp, long long int &atoms, int dimenstion, int ts,
         MPI_Win_create(array, atoms * dimenstion * sizeof(double), sizeof(double), MPI_INFO_NULL, gcomm, &win);
     }
 
-
-   
-        
-         MPI_Win_lock(MPI_LOCK_EXCLUSIVE, rcvrank, 0, win);
+    MPI_Comm_group(gcomm, &comm_group);
 
     if (rank == rcvrank)
     {
+
+        int ranks[nsim];
+
+        for (int i = 0; i < nsim; i++)
+            ranks[i] = i;
+
+        MPI_Group_incl(comm_group, nsim, ranks, &rmagroup);
+        /* Begin the access epoch */
+        MPI_Win_start(rmagroup, 0, win);
+
+	MPI_Wait(&request,MPI_STATUS_IGNORE);
+
+     
+        for (int i = nsim; i > 0; i--)
+        {
+            acount[i] = acount[i - 1];
+            atoms += acount[i];
+        }
+        acount[0] = 0;
+
+        /* Put into rank==0 according to my rank */
         double **array = (double **)temp;
 
         for (int i = 0; i < nsim; i++)
@@ -90,16 +125,21 @@ void Communicator::rma(void *temp, long long int &atoms, int dimenstion, int ts,
             MPI_Get((array[ts] + (dimenstion * acount[i])), dimenstion * acount[i + 1], MPI_DOUBLE, i, 0, dimenstion * acount[i + 1], MPI_DOUBLE, win);
         }
 
+        /* Terminate the access epoch */
+         MPI_Win_complete(win);
+       
+    }
+    else
+    {
+
+        int ranks[] = {rcvrank};
+
+        MPI_Group_incl(comm_group, 1, ranks, &rmagroup);
+        MPI_Win_post(rmagroup, 0, win);
+       
     }
 
-        MPI_Win_unlock(rcvrank, win);
-      
    
-    
-   
-    MPI_Win_free(&win);
-
-
 }
 
 void Communicator::communicate(void *data, long long int &atoms, int dimension, int ts, int rank, int aindex)

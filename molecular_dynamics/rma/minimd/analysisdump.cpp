@@ -118,6 +118,7 @@ void Dump::apack(Atom &atom, Comm &comm, int n, int aindex)
 			array[i] = atom.v[i * PAD + 1];
 	}
 
+	transmitter.pre_rma(grank); // returns if not RMA
 	transmitter.communicate(array, nlocal, adim[aindex], acurrstep[aindex], grank, aindex);
 }
 

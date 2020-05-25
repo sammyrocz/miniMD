@@ -51,13 +51,14 @@ void Modalysis::readdata(int aindex, int ts)
 
     if ((acurrstep[aindex] % atevery[aindex]) == 0 && istemporal[aindex] == 0)
     {
-
+        transmitter.pre_rma(grank);
         transmitter.communicate(array[aindex], nlocal, adim[aindex], acurrstep[aindex], grank,aindex);
         
         coanalyze(array[aindex], aindex, acurrstep[aindex]);
     }
     else if (istemporal[aindex])
-    {
+    {   
+        transmitter.pre_rma(grank);
         transmitter.communicate(array[aindex], nlocal, adim[aindex], acurrstep[aindex], grank,aindex);
 
         if ((ts + 1) % atevery[aindex] == 0)
