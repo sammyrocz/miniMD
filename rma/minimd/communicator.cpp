@@ -15,13 +15,19 @@ void Communicator::init(int a)
 
     for (int i = 0; i < anum; i++)
         commtime[i] = 0.0;
+
+    if(commtype != 0) {
+        // RMA
+        win = new MPI_Win[anum];
+    }
+
 }
 
 Communicator::~Communicator()
 {
 }
 
-void Communicator::pre_rma(int rank)
+void Communicator::pre_rma(int rank, int index)
 {
 
     if (commtype == 0) // Request Type SEND
@@ -34,13 +40,13 @@ void Communicator::pre_rma(int rank)
 
     if (rank != rcvrank)
     {
-        MPI_Win_wait(win);
+        MPI_Win_wait(win[aindex]);
         
     } 
 
-    MPI_Win_free(&win);
-    MPI_Group_free(&rmagroup);
-    MPI_Group_free(&comm_group);
+    // MPI_Win_free(&win);
+    // MPI_Group_free(&rmagroup);
+    // MPI_Group_free(&comm_group);
 
     pending_request = true;
 }
@@ -106,7 +112,7 @@ void Communicator::rma(void *temp, long long int &atoms, int dimenstion, int ts,
         /* Begin the access epoch */
         MPI_Win_start(rmagroup, 0, win);
 
-	MPI_Wait(&request,MPI_STATUS_IGNORE);
+	    MPI_Wait(&request,MPI_STATUS_IGNORE);
 
      
         for (int i = nsim; i > 0; i--)

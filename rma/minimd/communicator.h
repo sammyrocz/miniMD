@@ -27,7 +27,7 @@ public:
     
     // RMA Specific data memebers
     bool pending_request;
-    MPI_Win win;
+    MPI_Win *win;
     MPI_Group comm_group;
     MPI_Group rmagroup;
     MPI_Request request;

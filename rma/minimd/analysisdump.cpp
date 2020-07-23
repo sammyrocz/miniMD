@@ -37,7 +37,7 @@ void Dump::initAnalysisDump(Comm &comm, char *analysiscfg)
 	strcpy(configFile, analysiscfg);
 	//read from config file
 	if (comm.me == 0)
-	{
+	{	
 
 		FILE *fp = fopen(analysiscfg, "r");
 
@@ -61,6 +61,7 @@ void Dump::initAnalysisDump(Comm &comm, char *analysiscfg)
 	}
 
 	MPI_Bcast(&anum, 1, MPI_INT, 0, comm.subcomm);
+
 	transmitter.init(anum);
 	//allocate anum elements in all processes but 0 (reader)
 	if (afreq == NULL)
@@ -85,6 +86,11 @@ void Dump::initAnalysisDump(Comm &comm, char *analysiscfg)
 	{
 		afreq[i] = num_steps / atsteps[i]; //todo: deal with integrality later
 	}
+
+	for(int i = 0 ; i < anum ; i++){
+		dumper[i] = new double[adim[i]*tatoms];
+	}
+
 }
 
 void Dump::apack(Atom &atom, Comm &comm, int n, int aindex)
@@ -117,6 +123,25 @@ void Dump::apack(Atom &atom, Comm &comm, int n, int aindex)
 		else if (aindex == 5)
 			array[i] = atom.v[i * PAD + 1];
 	}
+
+
+	for (long long int i = 0; i < nlocal; i++)
+	{
+		if (aindex == 0)
+			dumper[aindex][i * PAD + 0] = atom.x[i * PAD + 0], dumper[aindex][i * PAD + 1] = atom.x[i * PAD + 1], dumper[aindex][i * PAD + 2] = atom.x[i * PAD + 2];
+		else if (aindex == 1)
+			dumper[aindex][i * PAD + 0] = atom.v[i * PAD + 0], dumper[aindex][i * PAD + 1] = atom.v[i * PAD + 1], dumper[aindex][i * PAD + 2] = atom.v[i * PAD + 2];
+		else if (aindex == 2)
+			dumper[aindex][i] = atom.x[i * PAD + 0];
+		else if (aindex == 3)
+			dumper[aindex][i] = atom.x[i * PAD + 1];
+		else if (aindex == 4)
+			dumper[aindex][i] = atom.v[i * PAD + 0];
+		else if (aindex == 5)
+			dumper[aindex][i] = atom.v[i * PAD + 1];
+	}
+
+
 
 	transmitter.pre_rma(grank); // returns if not RMA
 	transmitter.communicate(array, nlocal, adim[aindex], acurrstep[aindex], grank, aindex);
@@ -154,6 +179,9 @@ void Dump::aalloc(int anum)
 	istemporal = new int[anum];
 
 	afh = (MPI_File *)malloc(anum * sizeof(MPI_File));
+
+	dumper = new double*[anum];
+	
 }
 
 void Dump::finiAnalysisDump()

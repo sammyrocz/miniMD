@@ -45,7 +45,7 @@ Dump::Dump(){
 
 Dump::~Dump() {}
 
-void Dump::initDump(Comm &comm, int ts, int dfreq, char *dumpdir, char *analysiscfg) 
+void Dump::initDump(Comm &comm, int ts, int dfreq, char *dumpdir, char *analysiscfg,long long int atomcount) 
 {
 
 /*
@@ -57,6 +57,7 @@ void Dump::initDump(Comm &comm, int ts, int dfreq, char *dumpdir, char *analysis
 		}
 	}
 */
+	tatoms = atomcount;
 	int size;
 	MPI_Type_size(MPI_DOUBLE, &size);
 	if (size != sizeof(MMD_float))
@@ -210,6 +211,7 @@ void Dump::dump(Atom &atom, int n, Comm &comm) {
 }
 
 void Dump::writeFile(Atom &atom, int n, Comm &comm) {
+	
 	
 	pack(atom, n, comm);
 	dump(atom, n, comm);

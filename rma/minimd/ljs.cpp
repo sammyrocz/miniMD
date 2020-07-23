@@ -505,7 +505,7 @@ int miniMDinit(int argc, char** argv)
 	//if (me == 0) 
 	//	initConnection();
   
-	dump.initDump(comm, integrate.ntimes, dump_frequency, dumpdir, analysiscfg);	
+	dump.initDump(comm, integrate.ntimes, dump_frequency, dumpdir, analysiscfg,atom.natoms);	
 
 	if (dumpdir != NULL) delete dumpdir;
 	if (analysiscfg != NULL) delete analysiscfg;

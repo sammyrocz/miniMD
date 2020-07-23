@@ -59,7 +59,7 @@ public:
 
 	int getFreq();
 	char *getConfigFile();
-	void initDump(Comm &, int, int, char *, char *);
+	void initDump(Comm &, int, int, char *, char *, long long int);
 	void writeFile(Atom &, int, Comm &);
 	void pack(Atom &, int, Comm &);
 	void dump(Atom &, int, Comm &);
@@ -84,6 +84,9 @@ public:
 	MPI_Comm gcomm;
 	int grank;
 	int tosend;
+
+	double **dumper;
+	long long int tatoms; // total atoms 
 };
 
 #endif
